@@ -4,19 +4,19 @@
  * @version      : 1.0
  * @Date         : 2021-08-20 16:44:21
  * @LastAuthor   : LQ
- * @lastTime     : 2021-08-20 16:53:42
+ * @lastTime     : 2021-08-23 20:53:09
  * @FilePath     : /u-view2.0/uview-ui/libs/config/props/cell.js
  */
 export default {
 	// cell组件的props
 	cell: {
 		customClass: '',
-		customStyle: {},
 		title: '',
 		label: '',
 		value: '',
 		icon: '',
 		titleWidth: '',
+		disabled:false,
 		border: true,
 		center: false,
 		url: '',
@@ -29,7 +29,6 @@ export default {
 		rightIcon: 'arrow-right',
 		titleStyle: {},
 		size: '',
-		stop: true,
-		disabled: false
+		stop: true
 	},
 }
