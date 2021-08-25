@@ -16,7 +16,7 @@ export default {
 		min: 0,
 		max: 100,
 		step: 1,
-		height: 10,
+		height: 4,
 		activeColor: '#2979ff',
 		inactiveColor: '#c0c4cc',
 		blockColor: '#ffffff',

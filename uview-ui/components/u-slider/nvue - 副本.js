@@ -39,24 +39,19 @@ export default {
 	},
 	methods: {
 		init() {
-			// 更新滑块尺寸信息
-			this.getSliderRect().then(size => {
-				this.sliderRect = size
-				this.initX()
-			})
+			this.getSliderRect()
 		},
 		// 获取节点信息
 		// 获取slider尺寸
 		getSliderRect() {
 			// 获取滑块条的尺寸信息
 			// 通过nvue的dom模块，查询节点信息
-			return new Promise(resolve => {
-				this.$nextTick(() => {
-					dom.getComponentRect(this.$refs['slider'], res => {
-						resolve(res.size)
-					})
+			setTimeout(() => {
+				dom.getComponentRect(this.$refs['slider'], res => {
+					this.sliderRect = res.size
+					this.initX()
 				})
-			})
+			}, 10)
 		},
 		// 初始化按钮位置
 		initButtonStyle({
@@ -74,65 +69,87 @@ export default {
 			return Math.round(Math.max(this.min, Math.min(value, this.max)) / this.step) * this.step
 		},
 		// 滑动开始
-		async onTouchStart(e) {
-			console.log('start');
+		onTouchStart(e) {
 			// 阻止页面滚动，可以保证在滑动过程中，不让页面可以上下滚动，造成不好的体验
 			e.stopPropagation && e.stopPropagation()
 			e.preventDefault && e.preventDefault()
-			// 更新滑块的尺寸信息
-			this.sliderRect = await this.getSliderRect()
-			// 标记滑动过程中触摸点的信息
-			this.touchStart(e)
-		},
-		// 开始滑动
-		onTouchMove(e) {
-			if(this.moving) {
-				return 
+			if (this.moving || this.disabled) {
+				// 释放上一次的资源
+				if (this.panEvent?.token != 0) {
+					BindingX.unbind({
+						token: this.panEvent.token,
+						// pan为手势事件
+						eventType: 'pan'
+					})
+					this.gesToken = 0
+				}
+				return
 			}
+
 			this.moving = true
-			// 更新触摸点相关信息
-			const touch = this.getTouchPoint(e)
-			const {
-				width,
-				left
-			} = this.sliderRect
-			const value = ((touch.x - left) / width) * 100
-			// console.log('touch', touch);
-			let percent = 0
-			if (this.step > 1) {
-				// 如果step步进大于1，需要跳步，所以需要使用Math.round进行取整
-				percent = Math.round(uni.$u.range(this.min, this.max, value) / this.step) * this.step
-			} else {
-				// 当step=1时，无需跳步，充分利用wxs性能，滑块实时跟随手势，达到丝滑的效果
-				percent = uni.$u.range(this.min, this.max, value)
-			}
-			// console.log('percent', percent);
-			const gapWidth = Math.round(percent / 100 * width)
-			// console.log(touch.x, gapWidth);
+			this.touching = true
+
 			// 获取元素ref
 			const button = this.$refs['nvue-button'].ref
 			const gap = this.$refs['nvue-gap'].ref
-			console.log('gapWidth', gapWidth);
-			// console.log('touch', touch.x);
-			animation.transition(button, {
-				styles: {
-					transform: `translateX(${gapWidth}px)`
-				},
-				duration: 0,
-				needLayout: false,
-				timingFunction: 'linear'
-			}, () => {
-				this.moving = false
+
+			const {
+				min,
+				max,
+				step
+			} = this
+			const {
+				left,
+				width
+			} = this.sliderRect
+
+			// 初始值为本次偏移量x，加上次停止滑动时的结束值
+			let exporession = `(${this.x} + x)`
+			// 将偏移的x值，转为总位移的百分比值，为了和min和max进行判断
+			exporession = `(${exporession} / ${width}) * 100`
+			if (step > 1) {
+				// 如果step步进大于1，需要跳步，所以需要使用Math.round进行取整
+				exporession = `round(max(${min}, min(${exporession}, ${max})) / ${step}) * ${step}`
+			} else {
+				// 当step=1时，无需跳步，充分利用bindingx性能，滑块实时跟随手势，达到丝滑的效果
+				exporession = `max(${min}, min(${exporession}, ${max}))`
+			}
+			// 将百分比最后转化为对应的px值
+			exporession = `${exporession} / 100 * ${width}`
+			// 最大值不允许超过轨迹的宽度
+			let sliderWidth = this.sliderRect.width
+			exporession = `min(${sliderWidth}, ${exporession})`
+			const buttonExpression = `${exporession} - ${this.blockHeight / 2}`
+
+			this.panEvent = BindingX.bind({
+				anchor: button,
+				eventType: 'pan',
+				props: [{
+					element: gap,
+					// 绑定width属性，设置其宽度值
+					property: 'width',
+					expression: exporession
+				}, {
+					element: button,
+					// 绑定width属性，设置其宽度值
+					property: 'transform.translateX',
+					expression: buttonExpression
+				}]
+			}, (e) => {
+				if (e.state === 'end' || e.state === 'exit') {
+					// 
+					this.x = uni.$u.range(0, left + width, e.deltaX + this.x)
+					// 根据偏移值，得出移动的百分比，进而修改双向绑定的v-model的值
+					const value = (this.x / width) * 100
+					const percent = this.formatStep(value)
+					// 修改value值
+					this.$emit('input', percent)
+					// 标记下一次触发value的watch时，这个值的变化，是由内部改变的
+					this.changeFromInside = true
+					this.moving = false
+					this.touching = false
+				}
 			})
-			// animation.transition(gap, {
-			// 	styles: {
-			// 		width: `${gapWidth}px`
-			// 	},
-			// 	duration: 0,
-			// 	needLayout: false
-			// }, () => {
-			// 	this.moving = false
-			// })
 		},
 		// 从value的变化，倒推得出x的值该为多少
 		initX() {

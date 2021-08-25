@@ -1,107 +1,107 @@
 <template>
-	<!-- #ifdef H5 || APP-VUE || MP-QQ || MP-WEIXIN -->
-	<view
-	    class="u-slider"
-	    @tap="wxsModule.onClick"
-		:change:prop="wxsModule.sizeReady"
-		:prop="info"
-		ref="slider"
-	    :class="[disabled ? 'u-slider--disabled' : '']"
-	    :style="{
-			backgroundColor: inactiveColor,
-			height: $u.addUnit(height),
-		}"
-	>
-	<!-- #endif -->
-	<!-- #ifdef APP-NVUE -->
-	<view
-	    class="u-slider"
-	    @touchstart="onClick"
-		ref="slider"
-	    :class="[disabled ? 'u-slider--disabled' : '']"
-	    :style="{
-			backgroundColor: inactiveColor,
-			height: $u.addUnit(height),
-		}"
-	>
-	<!-- #endif -->
-		<!-- #ifdef APP-NVUE -->
+	<view class="u-slider">
+		<!-- #ifdef H5 || APP-VUE || MP-QQ || MP-WEIXIN -->
 		<view
-		    class="u-slider__gap"
-			ref="nvue-gap"
-			:class="[!touching && 'u-slider__gap--ani']"
-		    :style="[
-				barStyle,
-				{
-					backgroundColor: activeColor,
-					height: $u.addUnit(height),
-				}
-			]"
+			class="u-slider__track"
+			@tap="wxsModule.onClick"
+			:change:prop="wxsModule.sizeReady"
+			:prop="info"
+			ref="slider"
+			:class="[disabled ? 'u-slider--disabled' : '']"
+			:style="{
+				backgroundColor: inactiveColor,
+				height: $u.addUnit(height),
+			}"
 		>
 		<!-- #endif -->
-		<!-- #ifndef APP-NVUE -->
+		<!-- #ifdef APP-NVUE -->
 		<view
-		    class="u-slider__gap u-slider__gap--ani"
-			ref="nvue-gap"
-		    :style="[
-				barStyle,
-				{
-					backgroundColor: activeColor,
-					height: $u.addUnit(height),
-				}
-			]"
+			class="u-slider__track"
+			ref="slider"
+			:class="[disabled ? 'u-slider--disabled' : '']"
+			:style="{
+				backgroundColor: inactiveColor,
+				height: $u.addUnit(height),
+			}"
 		>
 		<!-- #endif -->
 			<!-- #ifdef APP-NVUE -->
 			<view
-			    class="u-slider__gap__button-wrap"
-				@touchstart="onTouchStart"
-			    @panmove="onTouchMove"
-				:style="[buttomWrapStyle]"
-				ref="nvue-button"
+				class="u-slider__track__gap"
+				ref="nvue-gap"
+				:style="[
+					barStyle,
+					{
+						backgroundColor: activeColor,
+						height: $u.addUnit(height)
+					}
+				]"
 			>
 			<!-- #endif -->
-			<!-- #ifdef H5 || APP-VUE || MP-QQ || MP-WEIXIN -->
+			<!-- #ifndef APP-NVUE -->
 			<view
-			    class="u-slider__gap__button-wrap"
-			    @touchstart="wxsModule.onTouchStart"
-				@touchmove="wxsModule.onTouchMove"
-			    @touchend="wxsModule.onTouchEnd"
-				:style="[buttomWrapStyle]"
-				:change:prop="wxsModule.sizeReady"
-				:prop="info"
+				class="u-slider__gap u-slider__gap--ani"
+				ref="nvue-gap"
+				:style="[
+					barStyle,
+					{
+						backgroundColor: activeColor,
+						height: $u.addUnit(height),
+					}
+				]"
 			>
 			<!-- #endif -->
-				<slot>
-					<view
-					    class="u-slider__gap__button-wrap__button"
-					    :style="[buttonStyle]"
-					></view>
-				</slot>
 			</view>
+		</view>
+		<!-- #ifdef APP-NVUE -->
+		<view
+			class="u-slider__button-wrap"
+			@touchstart="onTouchStart"
+			@touchmove="onTouchMove"
+			:style="[buttonWrapStyle, buttonWrapperStyle]"
+			ref="nvue-button"
+		>
+		<!-- #endif -->
+		<!-- #ifdef H5 || APP-VUE || MP-QQ || MP-WEIXIN -->
+		<view
+			class="u-slider__button-wrap"
+			@touchstart="wxsModule.onTouchStart"
+			@touchend="wxsModule.onTouchEnd"
+			:style="[buttonWrapStyle, buttonWrapperStyle]"
+			:change:prop="wxsModule.sizeReady"
+			:prop="info"
+		>
+		<!-- #endif -->
+			<slot>
+				<view
+					class="u-slider__button-wrap__button"
+					:style="[buttonStyle]"
+				></view>
+			</slot>
 		</view>
 	</view>
 </template>
 
 <!-- #ifdef APP-VUE || MP-WEIXIN || H5 || MP-QQ -->
 <script
-    src="./mpwxs.wxs"
-    module="wxsModule"
-    lang="wxs"
+	src="./mpwxs.wxs"
+	module="wxsModule"
+	lang="wxs"
 ></script>
 <!-- #endif -->
 
 <script>
-	// #ifndef APP-PLUS || MP-WEIXIN || MP-QQ || H5
+	// #ifndef APP-PLUS || MP-WEIXIN || MP-QQ || H5 || APP-NVUE
 	import mixins from './mpother'
 	// #endif
 	// #ifdef APP-VUE || MP-WEIXIN || H5 || MP-QQ
 	import mixins from './mpwxs.js'
 	// #endif
 	// #ifdef APP-NVUE
-	import mixins from './nvue'
+	// import mixins from './nvue'
 	// #endif
 	import props from './props.js';
+	import touch from '../../libs/mixin/touch.js'
 	/**
 	 * slider 滑块选择器
 	 * @description 该组件一般用于表单中，手动选择一个区间范围的场景.
@@ -125,14 +125,15 @@
 	 */
 	export default {
 		name: 'u-slider',
-		mixins: [uni.$u.mixin, mixins, props],
+		mixins: [uni.$u.mixin, props, touch],
 		data() {
 			return {
 				// 滑动的状态有3个，start-开始 -> moving-移动中 -> end-结束
 				status: 'end',
 				barStyle: {},
-				sliderRect: {}
-			};
+				sliderRect: {},
+				buttonWrapperStyle: {},
+			}
 		},
 		computed: {
 			buttonStyle() {
@@ -144,85 +145,94 @@
 				}
 				return uni.$u.deepMerge(uni.$u.addStyle(this.blockStyle), style)
 			},
-			buttomWrapStyle() {
+			buttonWrapStyle() {
 				// 让元素垂直居中，top需要设置为父元素的50%，但是nvue不支持%写法
 				let value = uni.$u.getPx(this.height)
 				return {
-					top: value / 2 + 'px'
+					top: (value + 20) / 2 - this.blockHeight / 2 + 'px',
+					// left: uni.$u.addUnit(-this.blockHeight / 2)
 				}
 			}
 		},
 		mounted() {
-			
+
 		},
 		methods: {
-			
+
 		}
 	};
 </script>
 
 <style lang="scss">
 	@import "../../libs/css/components.scss";
-	
-    $u-slider-border-radius:999px !default;
+
+	$u-slider-border-radius:999px !default;
 	$u-slider-bgColor:#ebedf0 !default;
 	$u-slider-gap-border-radius:999px !default;
 	$u-slider-gap-bgColor:$u-primary !default;
 	$u-slider-gap-width:0 !default;
 	$u-slider-ani-transition:width 0.2s ease !default;
 	$u-slider-button-wrap-top:50% !default;
-    $u-slider-button-wrap-right:0 !default;
-	$u-slider-button-wrap-transform: translate(50%, -50%) !default;
+	$u-slider-button-wrap-right:0 !default;
+	$u-slider-button-wrap-transform: translate(0, -50%) !default;
 	$u-slider-button-width:24px !default;
 	$u-slider-button-height:24px !default;
 	$u-slider-button-border-radius:100px !default;
 	$u-slider-button-box-shadow:0 1px 2px rgba(0, 0, 0, 0.5) !default;
 	$u-slider-button-bgColor:#fff !default;
 	$u-slider-disabled-opacity:0.5 !default;
+
 	.u-slider {
 		position: relative;
-		border-radius:$u-slider-border-radius;
-		background-color:$u-slider-bgColor;
-		/* #ifndef APP-NVUE */
-		touch-action: none;
-		/* #endif */
+		padding: 10px 0;
 
-		&__gap {
-			position: relative;
-			border-radius:$u-slider-gap-border-radius;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
-			background-color:$u-slider-gap-bgColor;
-			width:$u-slider-gap-width;
-			width: 100px;
-			
-			&--ani {
-				transition:$u-slider-ani-transition;
-			}
+		&__track {
+			border-top-right-radius: $u-slider-border-radius;
+			border-top-left-radius: $u-slider-border-radius;
+			border-bottom-right-radius: $u-slider-border-radius;
+			border-bottom-left-radius: $u-slider-border-radius;
+			background-color: $u-slider-bgColor;
+			/* #ifndef APP-NVUE */
+			touch-action: none;
+			/* #endif */
+			overflow: hidden;
 
-			&__button-wrap {
-				position: absolute;
-				top:$u-slider-button-wrap-top;
-				right:$u-slider-button-wrap-right;
-				transform:$u-slider-button-wrap-transform;
-				z-index: 3999; 
+			&__gap {
+				border-top-right-radius: 0;
+				border-top-left-radius: $u-slider-border-radius;
+				border-bottom-right-radius: 0;
+				border-bottom-left-radius: $u-slider-border-radius;
+				background-color: $u-slider-gap-bgColor;
+				width: 0;
 				
-
-				&__button {
-					width:$u-slider-button-width;
-					height:$u-slider-button-height;
-					border-radius:$u-slider-button-border-radius;
-					box-shadow:$u-slider-button-box-shadow;
-					background-color:$u-slider-button-bgColor;
-					/* #ifndef APP-NVUE */
-					cursor: pointer;
-					/* #endif */
+				&--ani {
+					transition: $u-slider-ani-transition;
 				}
 			}
 		}
 
+
+		&__button-wrap {
+			position: absolute;
+			top: 5px;
+			// transform: $u-slider-button-wrap-transform;
+			z-index: 3999;
+
+			&__button {
+				width: $u-slider-button-width;
+				height: $u-slider-button-height;
+				border-radius: $u-slider-button-border-radius;
+				box-shadow: $u-slider-button-box-shadow;
+				background-color: $u-slider-button-bgColor;
+				/* #ifndef APP-NVUE */
+				cursor: pointer;
+				/* #endif */
+				background-color: red;
+			}
+		}
+
 		&--disabled {
-			opacity:$u-slider-disabled-opacity;
+			opacity: $u-slider-disabled-opacity;
 		}
 	}
 </style>

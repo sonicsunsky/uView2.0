@@ -4,16 +4,16 @@
 			<text class="u-demo-block__title">基本案例</text>
 			<view class="u-page__slide-item">
 				<u-slider
-				    v-model="value1"
-				    @moving="moving"
-				    @click="click"
-				    @start="start"
-				    :step="1"
-				    @end="end"
+					v-model="value1"
+					@moving="moving"
+					@click="click"
+					@start="start"
+					:step="1"
+					@end="end"
 				></u-slider>
 			</view>
 		</view>
-		<view class="u-demo-block">
+		<!-- 	<view class="u-demo-block">
 			<text class="u-demo-block__title">自定义范围(0—50)</text>
 			<view class="u-page__slide-item">
 				<u-slider
@@ -58,7 +58,7 @@
 				    blockColor="pink"
 				></u-slider>
 			</view>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -80,16 +80,16 @@
 		},
 		methods: {
 			moving(value) {
-				console.log('moving', value)
+				// console.log('moving', value)
 			},
 			click(value) {
-				console.log('click', value)
+				// console.log('click', value)
 			},
 			end(value) {
-				console.log('end', value)
+				// console.log('end', value)
 			},
 			start(value) {
-				console.log('start', value)
+				// console.log('start', value)
 			}
 		}
 	}
@@ -97,8 +97,9 @@
 
 <style lang="scss">
 	.u-page {
-		&__slide-item{
-			margin-top:5px;
+		&__slide-item {
+			margin-top: 5px;
+			padding: 0 50px;
 		}
 	}
 </style>
