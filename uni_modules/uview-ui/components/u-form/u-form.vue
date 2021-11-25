@@ -178,16 +178,14 @@
 			},
 			// 校验全部数据
 			validate(callback) {
-				return new Promise((resolve, reject) => {
-					// $nextTick是必须的，否则model的变更，可能会延后于validate方法
-					this.$nextTick(() => {
-						// 获取所有form-item的prop，交给validateField方法进行校验
-						const formItemProps = this.children.map(
-							(item) => item.prop
-						);
-						this.validateField(formItemProps, (errors) => {
-							errors.length ? reject(errors) : resolve(true);
-						});
+				// $nextTick是必须的，否则model的变更，可能会延后于validate方法
+				this.$nextTick(() => {
+					// 获取所有form-item的prop，交给validateField方法进行校验
+					const formItemProps = this.children.map(
+						(item) => item.prop
+					);
+					this.validateField(formItemProps, (errors) => {
+						errors.length ? callback(errors) : callback(true);
 					});
 				});
 			},
